@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import './product_edit.dart';
 import '../models/product.dart';
+import 'package:scoped_model/scoped_model.dart';
+import 'package:flutter101/scoped_models/product_helper.dart';
 
 class ProductListPage extends StatelessWidget {
   final List<Product> products;
@@ -36,18 +38,22 @@ class ProductListPage extends StatelessWidget {
                 ),
                 title: Text(products[index].title),
                 subtitle: Text('\$${products[index].price.toString()}'),
-                trailing: IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (BuildContext context) {
-                        return ProductEditPage(
-                          product: products[index],
-                          updateProduct: updateProduct,
-                          productIndex: index,
-                        );
-                      }));
-                    }),
+                trailing: ScopedModelDescendant<ProductHelper>(builder: (BuildContext context, Widget child, ProductHelper model) {
+                    return IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: () {
+                          model.selectProduct(index);
+                          Navigator.push(context, MaterialPageRoute(
+                              builder: (BuildContext context) {
+                            return ProductEditPage(
+                              product: products[index],
+                              updateProduct: updateProduct,
+                              productIndex: index,
+                            );
+                          }));
+                        });
+                  },
+                ),
               ),
               Divider()
             ],

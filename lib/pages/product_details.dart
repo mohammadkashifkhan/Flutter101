@@ -4,10 +4,14 @@ import '../widgets/ui_elements/title_default.dart';
 
 import '../widgets/products/address_tag.dart';
 
-class ProductDetailsPage extends StatelessWidget {
-  final String title, imageUri, price, description;
+import 'package:scoped_model/scoped_model.dart';
+import 'package:flutter101/scoped_models/product_helper.dart';
+import '../models/product.dart';
 
-  ProductDetailsPage(this.title, this.imageUri, this.price, this.description);
+class ProductDetailsPage extends StatelessWidget {
+  final int index;
+
+  ProductDetailsPage(this.index);
 
   void _showAlertDialog(BuildContext context) {
     showDialog(
@@ -36,27 +40,30 @@ class ProductDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-        onWillPop: () {
-          Navigator.pop(context, false);
-          return Future.value(false);
-        },
-        child: Scaffold(
-          appBar: AppBar(title: Text(title)),
+      onWillPop: () {
+        Navigator.pop(context, false);
+        return Future.value(false);
+      },
+      child: ScopedModelDescendant<ProductHelper>(
+          builder: (BuildContext context, Widget child, ProductHelper model) {
+        final Product product = model.products[index];
+        return Scaffold(
+          appBar: AppBar(title: Text(product.title)),
           body: Column(
             children: <Widget>[
-              Image.asset(imageUri),
+              Image.asset(product.imgUri),
               Container(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    TitleDefault(title),
+                    TitleDefault(product.title),
                     SizedBox(
                       width: 8.0,
                     ),
                     DecoratedBox(
                       child: Container(
                           child: Text(
-                            '\$$price',
+                            '\$${product.price}',
                             style: TextStyle(color: Colors.white),
                           ),
                           padding: EdgeInsets.symmetric(
@@ -73,13 +80,15 @@ class ProductDetailsPage extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 10.0),
                 margin: EdgeInsets.only(top: 10.0),
                 child: Text(
-                  description,
+                  product.desc,
                   textAlign: TextAlign.justify,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               )
             ],
           ),
-        ));
+        );
+      }),
+    );
   }
 }

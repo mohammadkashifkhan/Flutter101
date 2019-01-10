@@ -5,13 +5,6 @@ import 'package:scoped_model/scoped_model.dart';
 import 'package:flutter101/scoped_models/product_helper.dart';
 
 class ProductEditPage extends StatefulWidget {
-  final Function addProduct, updateProduct;
-
-  final Product product;
-  final int productIndex;
-
-  ProductEditPage(
-      {this.addProduct, this.updateProduct, this.productIndex, this.product});
 
   @override
   State<StatefulWidget> createState() {
