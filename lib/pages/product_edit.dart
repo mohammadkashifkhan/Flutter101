@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter101/scoped_models/product_helper.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 import '../models/product.dart';
-import 'package:scoped_model/scoped_model.dart';
-import 'package:flutter101/scoped_models/product_helper.dart';
 
 class ProductEditPage extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() {
     return _ProductEditPageState();
@@ -21,33 +20,43 @@ class _ProductEditPageState extends State<ProductEditPage> {
   };
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  Widget _buildSubmitButton(){
-    return ScopedModelDescendant<ProductHelper>(builder: (BuildContext context, Widget child, ProductHelper model){
-      return RaisedButton(
-        child: Text('Save'),
-        textColor: Colors.white,
-        onPressed: () {
-          if (!formKey.currentState.validate()) {
-            return;
-          }
-          formKey.currentState.save();
+  Widget _buildSubmitButton() {
+    return ScopedModelDescendant<ProductHelper>(
+      builder: (BuildContext context, Widget child, ProductHelper model) {
+        return RaisedButton(
+          child: Text('Save'),
+          textColor: Colors.white,
+          onPressed: () {
+            if (!formKey.currentState.validate()) {
+              return;
+            }
+            formKey.currentState.save();
 
-          widget.product == null ? model.addProduct(
-              Product(title: _formData['title'], desc: _formData['desc'], imgUri: _formData['imgUri'], price: _formData['price']))
-              : model.updateProduct(widget.productIndex, Product(title: _formData['title'], desc: _formData['desc'], imgUri: _formData['imgUri'], price: _formData['price']));
+            model.selectedIndex == null
+                ? model.addProduct(Product(
+                    title: _formData['title'],
+                    desc: _formData['desc'],
+                    imgUri: _formData['imgUri'],
+                    price: _formData['price']))
+                : model.updateProduct(
+                    Product(
+                        title: _formData['title'],
+                        desc: _formData['desc'],
+                        imgUri: _formData['imgUri'],
+                        price: _formData['price']));
 
-          Navigator.pushReplacementNamed(context, '/home');
-        },
-      );
-    },);
+            Navigator.pushReplacementNamed(context, '/home');
+          },
+        );
+      },
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    double deviceWidth = MediaQuery.of(context).size.width;
+  Widget _buildPageContent(Product product){
+     double deviceWidth = MediaQuery.of(context).size.width;
     double targetWidth = deviceWidth > 550 ? 500 : deviceWidth * 0.9;
     double targetPadding = deviceWidth - targetWidth;
-    final Widget pageContent = GestureDetector(
+     return GestureDetector(
       onTap: () {
         FocusScope.of(context).requestFocus(
             FocusNode()); // to close the keyboard by tapping elsewhere
@@ -62,7 +71,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
             children: <Widget>[
               TextFormField(
                 initialValue:
-                    widget.product == null ? '' : widget.product.title,
+                product == null ? '' : product.title,
                 validator: (String value) {
                   if (value.isEmpty || value.length < 5)
                     return 'Title is required & should have 5+ characters';
@@ -74,7 +83,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                 },
               ),
               TextFormField(
-                initialValue: widget.product == null ? '' : widget.product.desc,
+                initialValue: product == null ? '' : product.desc,
                 validator: (String value) {
                   if (value.isEmpty || value.length < 10)
                     return 'Description is required & should have 10+ characters';
@@ -87,9 +96,9 @@ class _ProductEditPageState extends State<ProductEditPage> {
                 },
               ),
               TextFormField(
-                initialValue: widget.product == null
+                initialValue: product == null
                     ? ''
-                    : widget.product.price.toString(),
+                    : product.price.toString(),
                 validator: (String value) {
                   if (value.isEmpty)
                     return 'Price is required & should be a number';
@@ -109,13 +118,23 @@ class _ProductEditPageState extends State<ProductEditPage> {
         ),
       ),
     );
-    return widget.product == null
-        ? pageContent
-        : Scaffold(
-            appBar: AppBar(
-              title: Text('Edit Product'),
-            ),
-            body: pageContent,
-          );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return ScopedModelDescendant<ProductHelper>(
+      builder: (BuildContext context, Widget child, ProductHelper model) {
+        final Widget pageContent = _buildPageContent(model.selectedProduct);
+        return model.selectedIndex == null
+            ? pageContent
+            : Scaffold(
+                appBar: AppBar(
+                  title: Text('Edit Product'),
+                ),
+                body: pageContent,
+              );
+      },
+    );
   }
 }
