@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter101/scoped_models/product_helper.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 import '../widgets/products/products.dart';
 
 class HomePage extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,10 +28,17 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Easy List'),
         actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.favorite),
-            onPressed: () {},
-          )
+          ScopedModelDescendant<ProductHelper>(builder:
+              (BuildContext context, Widget child, ProductHelper model) {
+            return IconButton(
+              icon: Icon(model.isShowingFavorites == true
+                  ? Icons.favorite
+                  : Icons.favorite_border),
+              onPressed: () {
+                model.toggleFavoriteOnHome();
+              },
+            );
+          })
         ],
       ),
       body: Products(),

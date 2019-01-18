@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 import './product_card.dart';
-import 'package:scoped_model/scoped_model.dart';
-import '../../scoped_models/product_helper.dart';
 import '../../models/product.dart';
+import '../../scoped_models/product_helper.dart';
 
 class Products extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant<ProductHelper>(builder: (BuildContext context, Widget child, ProductHelper model){
-      return _buildProductCard(model.products);
+      return _buildProductCard(model.favoriteProducts);
     },);
   }
 
