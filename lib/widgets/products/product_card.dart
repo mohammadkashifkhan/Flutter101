@@ -35,7 +35,7 @@ class ProductCard extends StatelessWidget {
       children: <Widget>[
         IconButton(
           icon: Icon(Icons.info),
-          color: Theme.of(context).accentColor,
+          color: Theme.of(context).primaryColor,
           onPressed: () => Navigator.pushNamed<bool>(
               context, '/product/' + productIndex.toString()),
         ),
@@ -62,10 +62,9 @@ class ProductCard extends StatelessWidget {
     return Card(
       child: Column(
         children: <Widget>[
-          Image.asset(product.image),
+          Image.network(product.image),
           _buildTitlePriceRow(),
           AddressTag('Union Square, San Francisco'),
-          Text(product.userEmail),
           _buildActionButtons(context)
         ],
       ),

@@ -26,19 +26,21 @@ class Flutter101 extends StatefulWidget {
 class _Flutter101State extends State<Flutter101> {
   @override
   Widget build(BuildContext context) {
+    MainModel model= MainModel();
     return ScopedModel<MainModel>(
-      model: MainModel(),
+      model: model,
       child: MaterialApp(
         // debugShowMaterialGrid: true,
         theme: ThemeData(
             brightness: Brightness.light,
-            primarySwatch: Colors.teal,
-            accentColor: Colors.tealAccent,
-            buttonColor: Colors.teal),
+            primarySwatch: Colors.blue,
+            secondaryHeaderColor: Colors.blue,
+            accentColor: Colors.teal,
+            buttonColor: Colors.blue),
         // home: AuthPage(),
         routes: {
           '/': (BuildContext context) => AuthPage(),
-          '/products': (BuildContext context) => HomePage(),
+          '/products': (BuildContext context) => HomePage(model),
           '/admin': (BuildContext context) => ProductsAdminPage(),
         },
         onGenerateRoute: (RouteSettings settings) {
@@ -57,7 +59,7 @@ class _Flutter101State extends State<Flutter101> {
         },
         onUnknownRoute: (RouteSettings settings) {
           return MaterialPageRoute(
-              builder: (BuildContext context) => HomePage());
+              builder: (BuildContext context) => HomePage(model));
         },
       ),
     );

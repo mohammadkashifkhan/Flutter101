@@ -4,7 +4,24 @@ import 'package:scoped_model/scoped_model.dart';
 import '../scoped-models/main_helper.dart';
 import '../widgets/products/products.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  MainModel model;
+
+  HomePage(this.model);
+
+  @override
+  State<StatefulWidget> createState() {
+    return _HomePageState();
+  }
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  initState(){
+    super.initState();
+    widget.model.fetchProducts();
+  }
+
   Widget _buildSideDrawer(BuildContext context) {
     return Drawer(
       child: Column(
@@ -23,6 +40,18 @@ class HomePage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildProductsList() {
+    return ScopedModelDescendant(builder: (BuildContext context, Widget child, MainModel model){
+      Widget content = Center(child: Text('No Products found!'),);
+      if(model.displayedProducts.length >0 && !model.isLoading())
+        content = Products();
+      else if(model.isLoading())
+        content = Center(child: CircularProgressIndicator(),);
+
+      return content;
+    },);
   }
 
   @override
@@ -46,7 +75,7 @@ class HomePage extends StatelessWidget {
           )
         ],
       ),
-      body: Products(),
+      body: _buildProductsList(),
     );
   }
 }

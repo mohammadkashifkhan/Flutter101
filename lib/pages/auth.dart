@@ -22,7 +22,7 @@ class _AuthPageState extends State<AuthPage> {
     return DecorationImage(
       fit: BoxFit.cover,
       colorFilter:
-          ColorFilter.mode(Colors.black.withOpacity(0.5), BlendMode.dstATop),
+          ColorFilter.mode(Colors.black.withOpacity(0.3), BlendMode.dstATop),
       image: AssetImage('assets/background.jpg'),
     );
   }
