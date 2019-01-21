@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TitleDefault extends StatelessWidget {
-  String title;
+  final String title;
 
   TitleDefault(this.title);
 
@@ -10,7 +10,7 @@ class TitleDefault extends StatelessWidget {
     return Text(
       title,
       style: TextStyle(
-          fontSize: 26.0, fontFamily: 'Oswald', fontWeight: FontWeight.bold),
+          fontSize: 26.0, fontWeight: FontWeight.bold, fontFamily: 'Oswald'),
     );
   }
 }

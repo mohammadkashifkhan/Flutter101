@@ -1,92 +1,72 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter101/scoped_models/main_helper.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../models/product.dart';
-import '../widgets/products/address_tag.dart';
+import '../scoped-models/main_helper.dart';
 import '../widgets/ui_elements/title_default.dart';
 
 class ProductDetailsPage extends StatelessWidget {
-  final int index;
+  final int productIndex;
 
-  ProductDetailsPage(this.index);
+  ProductDetailsPage(this.productIndex);
 
-  void _showAlertDialog(BuildContext context) {
-    showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Are you Sure?'),
-            content: Text('This cant be undone!'),
-            actions: <Widget>[
-              RaisedButton(
-                child: Text('Continue'),
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context, true);
-                },
-              ),
-              RaisedButton(
-                  child: Text('Discard'),
-                  onPressed: () => Navigator.pop(context))
-            ],
-          );
-        });
+  Widget _buildAddressPriceRow(double price) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text(
+          'Jumeirah Beach, Dubai',
+          style: TextStyle(fontFamily: 'Oswald', color: Colors.grey),
+        ),
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: 5.0),
+          child: Text(
+            '|',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+        Text(
+          '\$' + price.toString(),
+          style: TextStyle(fontFamily: 'Oswald', color: Colors.grey),
+        )
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () {
-        Navigator.pop(context, false);
-        return Future.value(false);
-      },
-      child: ScopedModelDescendant<MainHelper>(
-          builder: (BuildContext context, Widget child, MainHelper model) {
-        final Product product = model.products[index];
+    return WillPopScope(onWillPop: () {
+      Navigator.pop(context, false);
+      return Future.value(false);
+    }, child: ScopedModelDescendant<MainModel>(
+      builder: (BuildContext context, Widget child, MainModel model) {
+        final Product product = model.allProducts[productIndex];
         return Scaffold(
-          appBar: AppBar(title: Text(product.title)),
+          appBar: AppBar(
+            title: Text(product.title),
+          ),
           body: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Image.asset(product.imgUri),
+              Image.asset(product.image),
               Container(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    TitleDefault(product.title),
-                    SizedBox(
-                      width: 8.0,
-                    ),
-                    DecoratedBox(
-                      child: Container(
-                          child: Text(
-                            '\$${product.price}',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                              vertical: 2.0, horizontal: 5.0)),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                          color: Theme.of(context).accentColor),
-                    )
-                  ],
-                ),
+                padding: EdgeInsets.all(10.0),
+                child: TitleDefault(product.title),
               ),
-              AddressTag('Jumeirah Beach, Dubai'),
+              _buildAddressPriceRow(product.price),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                margin: EdgeInsets.only(top: 10.0),
+                padding: EdgeInsets.all(10.0),
                 child: Text(
-                  product.desc,
-                  textAlign: TextAlign.justify,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  product.description,
+                  textAlign: TextAlign.center,
                 ),
               )
             ],
           ),
         );
-      }),
-    );
+      },
+    ));
   }
 }

@@ -1,57 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:flutter101/scoped_models/main_helper.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import './product_edit.dart';
+import '../scoped-models/main_helper.dart';
 
 class ProductListPage extends StatelessWidget {
+  Widget _buildEditButton(BuildContext context, int index, MainModel model) {
+    return IconButton(
+      icon: Icon(Icons.edit),
+      onPressed: () {
+        model.selectProduct(index);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (BuildContext context) {
+              return ProductEditPage();
+            },
+          ),
+        ).then((_) {
+          model.selectProduct(null);
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ScopedModelDescendant<MainHelper>(
-      builder: (BuildContext context, Widget child, MainHelper model) {
+    return ScopedModelDescendant<MainModel>(
+      builder: (BuildContext context, Widget child, MainModel model) {
         return ListView.builder(
           itemBuilder: (BuildContext context, int index) {
             return Dismissible(
-              key: Key(model.products[index].title),
-              // should be unique
-              direction: DismissDirection.endToStart,
+              key: Key(model.allProducts[index].title),
               onDismissed: (DismissDirection direction) {
                 if (direction == DismissDirection.endToStart) {
                   model.selectProduct(index);
                   model.deleteProduct();
+                } else if (direction == DismissDirection.startToEnd) {
+                  print('Swiped start to end');
+                } else {
+                  print('Other swiping');
                 }
               },
-              background: Container(
-                alignment: Alignment(0.8, 0),
-                color: Colors.red,
-                child: Icon(Icons.delete),
-              ),
+              background: Container(color: Colors.red),
               child: Column(
                 children: <Widget>[
                   ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: AssetImage(
-                          model.products[index].imgUri,
-                        ),
-                      ),
-                      title: Text(model.products[index].title),
-                      subtitle:
-                          Text('\$${model.products[index].price.toString()}'),
-                      trailing: IconButton(
-                          icon: Icon(Icons.edit),
-                          onPressed: () {
-                            model.selectProduct(index);
-                            Navigator.push(context, MaterialPageRoute(
-                                builder: (BuildContext context) {
-                              return ProductEditPage();
-                            }));
-                          })),
+                    leading: CircleAvatar(
+                      backgroundImage:
+                          AssetImage(model.allProducts[index].image),
+                    ),
+                    title: Text(model.allProducts[index].title),
+                    subtitle:
+                        Text('\$${model.allProducts[index].price.toString()}'),
+                    trailing: _buildEditButton(context, index, model),
+                  ),
                   Divider()
                 ],
               ),
             );
           },
-          itemCount: model.products.length,
+          itemCount: model.allProducts.length,
         );
       },
     );
