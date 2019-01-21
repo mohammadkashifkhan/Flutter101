@@ -2,7 +2,7 @@ import 'package:scoped_model/scoped_model.dart';
 
 import '../models/product.dart';
 
-class ProductHelper extends Model {
+mixin ProductHelper on Model { // mixins are normal classes from which we can borrow methods(or variables) without extending the class
   List<Product> _products = [];
   int _selectedIndex;
   bool _showFavorites = false;

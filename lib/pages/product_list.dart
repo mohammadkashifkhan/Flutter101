@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter101/scoped_models/product_helper.dart';
+import 'package:flutter101/scoped_models/main_helper.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import './product_edit.dart';
@@ -7,8 +7,8 @@ import './product_edit.dart';
 class ProductListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ScopedModelDescendant<ProductHelper>(
-      builder: (BuildContext context, Widget child, ProductHelper model) {
+    return ScopedModelDescendant<MainHelper>(
+      builder: (BuildContext context, Widget child, MainHelper model) {
         return ListView.builder(
           itemBuilder: (BuildContext context, int index) {
             return Dismissible(

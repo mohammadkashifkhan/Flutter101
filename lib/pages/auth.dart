@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter101/scoped_models/main_helper.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 class AuthPage extends StatefulWidget {
   @override
@@ -75,20 +77,23 @@ class _AuthPageState extends State<AuthPage> {
                         },
                         title: Text('Accept TnC'),
                       ),
-                      RaisedButton(
-                          child: Text(
-                            'Login',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          onPressed: () {
-                            if (!formKey.currentState.validate()) {
-                              return;
-                            }
-                            if (_acceptTnC) {
-                              formKey.currentState.save();
-                              Navigator.pushReplacementNamed(context, '/home');
-                            }
-                          }),
+                      ScopedModelDescendant<MainHelper>(builder: (BuildContext context, Widget child, MainHelper model){
+                        return RaisedButton(
+                            child: Text(
+                              'Login',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: () {
+                              if (!formKey.currentState.validate()) {
+                                return;
+                              }
+                              if (_acceptTnC) {
+                                formKey.currentState.save();
+                                model.login(_email, _password);
+                                Navigator.pushReplacementNamed(context, '/home');
+                              }
+                            });
+                      },)
                     ],
                   ),
                 )),

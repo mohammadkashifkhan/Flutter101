@@ -3,12 +3,12 @@ import 'package:scoped_model/scoped_model.dart';
 
 import './product_card.dart';
 import '../../models/product.dart';
-import '../../scoped_models/product_helper.dart';
+import '../../scoped_models/main_helper.dart';
 
 class Products extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ScopedModelDescendant<ProductHelper>(builder: (BuildContext context, Widget child, ProductHelper model){
+    return ScopedModelDescendant<MainHelper>(builder: (BuildContext context, Widget child, MainHelper model){
       return _buildProductCard(model.favoriteProducts);
     },);
   }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter101/scoped_models/main_helper.dart';
 import 'package:scoped_model/scoped_model.dart';
-import './pages/home.dart';
+
 import './pages/auth.dart';
+import './pages/home.dart';
 import './pages/product_admin.dart';
 import './pages/product_details.dart';
-import 'package:flutter101/scoped_models/product_helper.dart';
 
 void main() => runApp(Flutter101());
 
@@ -19,8 +19,8 @@ class Flutter101 extends StatefulWidget {
 class Flutter101State extends State<Flutter101> {
   @override
   Widget build(BuildContext context) {
-    return ScopedModel<ProductHelper>(
-      model: ProductHelper(),
+    return ScopedModel<MainHelper>(
+      model: MainHelper(),
       child: MaterialApp(
         theme: ThemeData(
           brightness: Brightness.light,

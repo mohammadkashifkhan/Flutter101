@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-
-import '../widgets/ui_elements/title_default.dart';
-
-import '../widgets/products/address_tag.dart';
-
+import 'package:flutter101/scoped_models/main_helper.dart';
 import 'package:scoped_model/scoped_model.dart';
-import 'package:flutter101/scoped_models/product_helper.dart';
+
 import '../models/product.dart';
+import '../widgets/products/address_tag.dart';
+import '../widgets/ui_elements/title_default.dart';
 
 class ProductDetailsPage extends StatelessWidget {
   final int index;
@@ -44,8 +42,8 @@ class ProductDetailsPage extends StatelessWidget {
         Navigator.pop(context, false);
         return Future.value(false);
       },
-      child: ScopedModelDescendant<ProductHelper>(
-          builder: (BuildContext context, Widget child, ProductHelper model) {
+      child: ScopedModelDescendant<MainHelper>(
+          builder: (BuildContext context, Widget child, MainHelper model) {
         final Product product = model.products[index];
         return Scaffold(
           appBar: AppBar(title: Text(product.title)),

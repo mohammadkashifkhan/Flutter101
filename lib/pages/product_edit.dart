@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter101/scoped_models/product_helper.dart';
+import 'package:flutter101/scoped_models/main_helper.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../models/product.dart';
@@ -21,8 +21,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   Widget _buildSubmitButton() {
-    return ScopedModelDescendant<ProductHelper>(
-      builder: (BuildContext context, Widget child, ProductHelper model) {
+    return ScopedModelDescendant<MainHelper>(
+      builder: (BuildContext context, Widget child, MainHelper model) {
         return RaisedButton(
           child: Text('Save'),
           textColor: Colors.white,
@@ -122,9 +122,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
   @override
   Widget build(BuildContext context) {
-
-    return ScopedModelDescendant<ProductHelper>(
-      builder: (BuildContext context, Widget child, ProductHelper model) {
+    return ScopedModelDescendant<MainHelper>(
+      builder: (BuildContext context, Widget child, MainHelper model) {
         final Widget pageContent = _buildPageContent(model.selectedProduct);
         return model.selectedIndex == null
             ? pageContent
