@@ -29,7 +29,6 @@ class _ProductEditPageState extends State<ProductEditPage> {
       decoration: InputDecoration(labelText: 'Product Title'),
       initialValue: product == null ? '' : product.title,
       validator: (String value) {
-        // if (value.trim().length <= 0) {
         if (value.isEmpty || value.length < 5) {
           return 'Title is required and should be 5+ characters long.';
         }
@@ -47,7 +46,6 @@ class _ProductEditPageState extends State<ProductEditPage> {
       decoration: InputDecoration(labelText: 'Product Description'),
       initialValue: product == null ? '' : product.description,
       validator: (String value) {
-        // if (value.trim().length <= 0) {
         if (value.isEmpty || value.length < 10) {
           return 'Description is required and should be 10+ characters long.';
         }
@@ -65,7 +63,6 @@ class _ProductEditPageState extends State<ProductEditPage> {
       decoration: InputDecoration(labelText: 'Product Price'),
       initialValue: product == null ? '' : product.price.toString(),
       validator: (String value) {
-        // if (value.trim().length <= 0) {
         if (value.isEmpty ||
             !RegExp(r'^(?:[1-9]\d*|0)?(?:\.\d+)?$').hasMatch(value)) {
           return 'Price is required and should be a number.';
@@ -140,7 +137,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
         _formData['description'],
         _formData['image'],
         _formData['price'],
-      );
+      ).then((_)=> Navigator.pushReplacementNamed(context, '/products')
+          .then((_) => setSelectedProduct(null)));
     }
   }
 

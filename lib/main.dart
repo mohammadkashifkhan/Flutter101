@@ -41,7 +41,7 @@ class _Flutter101State extends State<Flutter101> {
         routes: {
           '/': (BuildContext context) => AuthPage(),
           '/products': (BuildContext context) => HomePage(model),
-          '/admin': (BuildContext context) => ProductsAdminPage(),
+          '/admin': (BuildContext context) => ProductsAdminPage(model),
         },
         onGenerateRoute: (RouteSettings settings) {
           final List<String> pathElements = settings.name.split('/');

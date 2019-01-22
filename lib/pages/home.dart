@@ -5,7 +5,7 @@ import '../scoped-models/main_helper.dart';
 import '../widgets/products/products.dart';
 
 class HomePage extends StatefulWidget {
-  MainModel model;
+  final MainModel model;
 
   HomePage(this.model);
 
@@ -17,7 +17,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
-  initState(){
+  initState() {
     super.initState();
     widget.model.fetchProducts();
   }
@@ -43,15 +43,23 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildProductsList() {
-    return ScopedModelDescendant(builder: (BuildContext context, Widget child, MainModel model){
-      Widget content = Center(child: Text('No Products found!'),);
-      if(model.displayedProducts.length >0 && !model.isLoading())
-        content = Products();
-      else if(model.isLoading())
-        content = Center(child: CircularProgressIndicator(),);
-
-      return content;
-    },);
+    return ScopedModelDescendant(
+      builder: (BuildContext context, Widget child, MainModel model) {
+        Widget content = Center(
+          child: Text('No Products found!'),
+        );
+        if (model.displayedProducts.length > 0 && !model.isLoading())
+          content = Products();
+        else if (model.isLoading())
+          content = Center(
+            child: CircularProgressIndicator(),
+          );
+        return RefreshIndicator(
+          onRefresh: model.fetchProducts,
+          child: content,
+        );
+      },
+    );
   }
 
   @override

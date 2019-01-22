@@ -11,7 +11,7 @@ mixin ConnectedProductsHelper on Model {
   List<Product> _products = [];
   int _selProductIndex; // although these properties are private, they are accessible in the same file by other classes
   User _authenticatedUser;
-  bool _isLoading= false;
+  bool _isLoading = false;
 
   Future<Null> addProduct(
       String title, String description, String image, double price) {
@@ -21,7 +21,7 @@ mixin ConnectedProductsHelper on Model {
       'title': title,
       'description': description,
       'image':
-          'http://store.approvedfood.co.uk/blog/wp-content/uploads/2017/12/iStock-535414786.jpg',
+          'https://www.telegraph.co.uk/content/dam/food-and-drink/2017/07/06/TELEMMGLPICT000133992337_trans_NvBQzQNjv4BqpVlberWd9EgFPZtcLiMQfyf2A9a6I9YchsjMeADBa08.jpeg?imwidth=450',
       'price': price,
       'userEmail': _authenticatedUser.email,
       'userId': _authenticatedUser.id
@@ -64,23 +64,20 @@ mixin ProductsHelper on ConnectedProductsHelper {
     return _selProductIndex;
   }
 
-  void fetchProducts() {
+  Future<Null> fetchProducts() {
     _isLoading = true;
-    httpClient
+    return httpClient
         .get('https://flutter101-11945.firebaseio.com/products.json')
         .then((httpClient.Response response) {
       _isLoading = false;
-      final Map<String, dynamic> productListData =
-          json.decode(response.body);
+      final Map<String, dynamic> productListData = json.decode(response.body);
       List<Product> fetchedProductList = [];
-      if(productListData == null)
-        {
-          _isLoading = false;
-          notifyListeners();
-          return;
-        }
-      productListData
-          .forEach((String productId, dynamic productData) {
+      if (productListData == null) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+      productListData.forEach((String productId, dynamic productData) {
         final Product product = Product(
             id: productId,
             title: productData['title'],
@@ -107,28 +104,59 @@ mixin ProductsHelper on ConnectedProductsHelper {
     return _showFavorites;
   }
 
-  void updateProduct(
+  Future<Null> updateProduct(
       String title, String description, String image, double price) {
-    final Product updatedProduct = Product(
-        title: title,
-        description: description,
-        image: image,
-        price: price,
-        userEmail: selectedProduct.userEmail,
-        userId: selectedProduct.userId);
-    _products[selectedProductIndex] = updatedProduct;
+    _isLoading = true;
     notifyListeners();
+    Map<String, dynamic> updatedData = {
+      'title': title,
+      'description': description,
+      'image':
+          'https://www.telegraph.co.uk/content/dam/food-and-drink/2017/07/06/TELEMMGLPICT000133992337_trans_NvBQzQNjv4BqpVlberWd9EgFPZtcLiMQfyf2A9a6I9YchsjMeADBa08.jpeg?imwidth=450',
+      'price': price,
+      'userEmail': selectedProduct.userEmail,
+      'userId': selectedProduct.id
+    };
+    return httpClient
+        .put(
+            'https://flutter101-11945.firebaseio.com/products/${selectedProduct.id}.json',
+            body: json.encode(updatedData))
+        .then((httpClient.Response response) {
+      _isLoading = false;
+
+      final Product updatedProduct = Product(
+          id: selectedProduct.id,
+          title: title,
+          description: description,
+          image: image,
+          price: price,
+          userEmail: selectedProduct.userEmail,
+          userId: selectedProduct.userId);
+      _products[selectedProductIndex] = updatedProduct;
+      notifyListeners();
+    });
   }
 
   void deleteProduct() {
+    _isLoading = true;
+    final deleteProductId = selectedProduct.id;
     _products.removeAt(selectedProductIndex);
+    _selProductIndex = null;
     notifyListeners();
+    httpClient
+        .delete(
+            'https://flutter101-11945.firebaseio.com/products/$deleteProductId.json')
+        .then((httpClient.Response response) {
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
   void toggleProductFavoriteStatus() {
     final bool isCurrentlyFavorite = selectedProduct.isFavorite;
     final bool newFavoriteStatus = !isCurrentlyFavorite;
     final Product updatedProduct = Product(
+        id: selectedProduct.id,
         title: selectedProduct.title,
         description: selectedProduct.description,
         price: selectedProduct.price,
