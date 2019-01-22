@@ -9,41 +9,10 @@ import '../models/user.dart';
 
 mixin ConnectedProductsHelper on Model {
   List<Product> _products = [];
-  int _selProductIndex; // although these properties are private, they are accessible in the same file by other classes
+  String
+      _selProductId; // although these properties are private, they are accessible in the same file by other classes
   User _authenticatedUser;
   bool _isLoading = false;
-
-  Future<Null> addProduct(
-      String title, String description, String image, double price) {
-    _isLoading = true;
-    notifyListeners();
-    Map<String, dynamic> productData = {
-      'title': title,
-      'description': description,
-      'image':
-          'https://www.telegraph.co.uk/content/dam/food-and-drink/2017/07/06/TELEMMGLPICT000133992337_trans_NvBQzQNjv4BqpVlberWd9EgFPZtcLiMQfyf2A9a6I9YchsjMeADBa08.jpeg?imwidth=450',
-      'price': price,
-      'userEmail': _authenticatedUser.email,
-      'userId': _authenticatedUser.id
-    };
-    return httpClient
-        .post('https://flutter101-11945.firebaseio.com/products.json',
-            body: json.encode(productData))
-        .then((httpClient.Response response) {
-      _isLoading = false;
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      final Product newProduct = Product(
-          id: responseData['name'],
-          title: title,
-          description: description,
-          image: image,
-          price: price,
-          userEmail: _authenticatedUser.email,
-          userId: _authenticatedUser.id);
-      _products.add(newProduct);
-      notifyListeners();
-    });
-  }
 }
 
 mixin ProductsHelper on ConnectedProductsHelper {
@@ -60,15 +29,57 @@ mixin ProductsHelper on ConnectedProductsHelper {
     return List.from(_products);
   }
 
-  int get selectedProductIndex {
-    return _selProductIndex;
+  String get selectedProductId {
+    return _selProductId;
+  }
+
+  Future<bool> addProduct(
+      String title, String description, String image, double price) {
+    _isLoading = true;
+    notifyListeners();
+    Map<String, dynamic> productData = {
+      'title': title,
+      'description': description,
+      'image':
+      'https://www.telegraph.co.uk/content/dam/food-and-drink/2017/07/06/TELEMMGLPICT000133992337_trans_NvBQzQNjv4BqpVlberWd9EgFPZtcLiMQfyf2A9a6I9YchsjMeADBa08.jpeg?imwidth=450',
+      'price': price,
+      'userEmail': _authenticatedUser.email,
+      'userId': _authenticatedUser.id
+    };
+    return httpClient
+        .post('https://flutter101-11945.firebaseio.com/products.json',
+        body: json.encode(productData))
+        .then((httpClient.Response response) {
+      if (!(response.statusCode == 200 && response.statusCode == 201)) {
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      final Product newProduct = Product(
+          id: responseData['name'],
+          title: title,
+          description: description,
+          image: image,
+          price: price,
+          userEmail: _authenticatedUser.email,
+          userId: _authenticatedUser.id);
+      _products.add(newProduct);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    }).catchError((error){ // generic error handling
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    });
   }
 
   Future<Null> fetchProducts() {
     _isLoading = true;
     return httpClient
         .get('https://flutter101-11945.firebaseio.com/products.json')
-        .then((httpClient.Response response) {
+        .then<Null>((httpClient.Response response) {
       _isLoading = false;
       final Map<String, dynamic> productListData = json.decode(response.body);
       List<Product> fetchedProductList = [];
@@ -90,21 +101,34 @@ mixin ProductsHelper on ConnectedProductsHelper {
       });
       _products = fetchedProductList;
       notifyListeners();
+      _selProductId = null;
+    }).catchError((error){ // generic error handling
+      _isLoading = false;
+      notifyListeners();
+      return;
+    });
+  }
+
+  int get selectedProductIndex {
+    return _products.indexWhere((Product product) {
+      return product.id == _selProductId;
     });
   }
 
   Product get selectedProduct {
-    if (selectedProductIndex == null) {
+    if (selectedProductIndex == -1) {
       return null;
     }
-    return _products[selectedProductIndex];
+    return _products.firstWhere((Product product) {
+      return product.id == _selProductId;
+    });
   }
 
   bool get displayFavoritesOnly {
     return _showFavorites;
   }
 
-  Future<Null> updateProduct(
+  Future<bool> updateProduct(
       String title, String description, String image, double price) {
     _isLoading = true;
     notifyListeners();
@@ -122,8 +146,6 @@ mixin ProductsHelper on ConnectedProductsHelper {
             'https://flutter101-11945.firebaseio.com/products/${selectedProduct.id}.json',
             body: json.encode(updatedData))
         .then((httpClient.Response response) {
-      _isLoading = false;
-
       final Product updatedProduct = Product(
           id: selectedProduct.id,
           title: title,
@@ -133,22 +155,33 @@ mixin ProductsHelper on ConnectedProductsHelper {
           userEmail: selectedProduct.userEmail,
           userId: selectedProduct.userId);
       _products[selectedProductIndex] = updatedProduct;
+      _isLoading = false;
       notifyListeners();
+      return true;
+    }).catchError((error){ // generic error handling
+      _isLoading = false;
+      notifyListeners();
+      return false;
     });
   }
 
-  void deleteProduct() {
+  Future<bool> deleteProduct() {
     _isLoading = true;
     final deleteProductId = selectedProduct.id;
     _products.removeAt(selectedProductIndex);
-    _selProductIndex = null;
+    _selProductId = null;
     notifyListeners();
-    httpClient
+    return httpClient
         .delete(
             'https://flutter101-11945.firebaseio.com/products/$deleteProductId.json')
         .then((httpClient.Response response) {
       _isLoading = false;
       notifyListeners();
+      return true;
+    }).catchError((error){ // generic error handling
+      _isLoading = false;
+      notifyListeners();
+      return false;
     });
   }
 
@@ -168,8 +201,8 @@ mixin ProductsHelper on ConnectedProductsHelper {
     notifyListeners();
   }
 
-  void selectProduct(int index) {
-    _selProductIndex = index;
+  void selectProduct(String productId) {
+    _selProductId = productId;
     notifyListeners();
   }
 
