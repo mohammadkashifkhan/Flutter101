@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as httpClient;
 import 'package:scoped_model/scoped_model.dart';
 
+import '../models/authmode.dart';
 import '../models/product.dart';
 import '../models/user.dart';
 
@@ -47,7 +48,7 @@ mixin ProductsHelper on ConnectedProductsHelper {
       'userId': _authenticatedUser.id
     };
     return httpClient
-        .post('https://flutter101-11945.firebaseio.com/products.json',
+        .post('https://flutter101-11945.firebaseio.com/products.json?auth=${_authenticatedUser.token}',
             body: json.encode(productData))
         .then((httpClient.Response response) {
       if (!(response.statusCode == 200 && response.statusCode == 201)) {
@@ -79,7 +80,8 @@ mixin ProductsHelper on ConnectedProductsHelper {
   Future<Null> fetchProducts() {
     _isLoading = true;
     return httpClient
-        .get('https://flutter101-11945.firebaseio.com/products.json')
+        .get(
+            'https://flutter101-11945.firebaseio.com/products.json?auth=${_authenticatedUser.token}')
         .then<Null>((httpClient.Response response) {
       _isLoading = false;
       final Map<String, dynamic> productListData = json.decode(response.body);
@@ -145,7 +147,7 @@ mixin ProductsHelper on ConnectedProductsHelper {
     };
     return httpClient
         .put(
-            'https://flutter101-11945.firebaseio.com/products/${selectedProduct.id}.json',
+            'https://flutter101-11945.firebaseio.com/products/${selectedProduct.id}.json?auth=${_authenticatedUser.token}',
             body: json.encode(updatedData))
         .then((httpClient.Response response) {
       final Product updatedProduct = Product(
@@ -176,7 +178,7 @@ mixin ProductsHelper on ConnectedProductsHelper {
     notifyListeners();
     return httpClient
         .delete(
-            'https://flutter101-11945.firebaseio.com/products/$deleteProductId.json')
+            'https://flutter101-11945.firebaseio.com/products/$deleteProductId.json?auth=${_authenticatedUser.token}')
         .then((httpClient.Response response) {
       _isLoading = false;
       notifyListeners();
@@ -217,8 +219,8 @@ mixin ProductsHelper on ConnectedProductsHelper {
 }
 
 mixin UserHelper on ConnectedProductsHelper {
-
-  Future<Map<String, dynamic>> login(String email, String password) {
+  Future<Map<String, dynamic>> authenticate(String email, String password,
+      [AuthMode mode = AuthMode.Login]) {
     _isLoading = true;
     notifyListeners();
     final Map<String, dynamic> authData = {
@@ -226,53 +228,55 @@ mixin UserHelper on ConnectedProductsHelper {
       'password': password,
       'returnSecureToken': true
     };
-    return httpClient.post(
-        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyC1ZjFvsdzibm7zaoKn0MU-H1HQSLPRq3o',
-        body: json.encode(authData),
-        headers: {
-          'Content-Type': 'application/json'
-        }).then((httpClient.Response response) {
-      print(json.decode(response.body));
-      _isLoading = false;
-      notifyListeners();
-      if (response.statusCode == 200)
-        return {'status': true, 'message': 'Authentication Succeeded!'};
-      else if (json.decode(response.body)['error']['message'] ==
-          'EMAIL_NOT_FOUND')
-        return {'status': false, 'message': 'This Email does not exists!'};
-      else if (json.decode(response.body)['error']['message'] ==
-          'INVALID_PASSWORD')
-        return {'status': false, 'message': 'Invalid Password!'};
-      else
-        return {'status': false, 'message': 'Something went wrong!'};
-    });
-    //    _authenticatedUser =
-//        User(id: 'fdalsdfasf', email: email, password: password);
+    if (mode == AuthMode.Login) {
+      return httpClient.post(
+          'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyC1ZjFvsdzibm7zaoKn0MU-H1HQSLPRq3o',
+          body: json.encode(authData),
+          headers: {
+            'Content-Type': 'application/json'
+          }).then((httpClient.Response response) {
+        return _actAccordingToResponse(response, mode);
+      });
+    } else {
+      return httpClient.post(
+          'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyC1ZjFvsdzibm7zaoKn0MU-H1HQSLPRq3o',
+          body: json.encode(authData),
+          headers: {
+            'Content-Type': 'application/json'
+          }).then((httpClient.Response response) {
+        return _actAccordingToResponse(response, mode);
+      });
+    }
   }
 
-  Future<Map<String, dynamic>> signUp(String email, String password) {
-    _isLoading = true;
+  Map<String, dynamic> _actAccordingToResponse(
+      httpClient.Response response, AuthMode mode) {
+    _isLoading = false;
     notifyListeners();
-    final Map<String, dynamic> authData = {
-      'email': email,
-      'password': password,
-      'returnSecureToken': true
-    };
-    return httpClient.post(
-        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyC1ZjFvsdzibm7zaoKn0MU-H1HQSLPRq3o',
-        body: json.encode(authData),
-        headers: {
-          'Content-Type': 'application/json'
-        }).then((httpClient.Response response) {
-      _isLoading = false;
-      notifyListeners();
-      if (response.statusCode == 200)
-        return {'status': true, 'message': 'SignUp Succeeded!'};
-      else if (json.decode(response.body)['error']['message'] == 'EMAIL_EXISTS')
-        return {'status': false, 'message': 'The Email already exists!'};
-      else
-        return {'status': false, 'message': 'Something went wrong!'};
-    });
+
+    if (response.statusCode == 200 && mode == AuthMode.Login) {
+      _authenticatedUser = User(
+          id: json.decode(response.body)['localId'],
+          email: json.decode(response.body)['email'],
+          token: json.decode(response.body)['idToken']);
+      return {'status': true, 'message': 'Authentication Succeeded!'};
+    }
+    if (response.statusCode == 200 && mode == AuthMode.SignUp) {
+      _authenticatedUser = User(
+          id: json.decode(response.body)['localId'],
+          email: json.decode(response.body)['email'],
+          token: json.decode(response.body)['idToken']);
+      return {'status': true, 'message': 'SignUp Succeeded!'};
+    } else if (json.decode(response.body)['error']['message'] == 'EMAIL_EXISTS')
+      return {'status': false, 'message': 'The Email already exists!'};
+    else if (json.decode(response.body)['error']['message'] ==
+        'EMAIL_NOT_FOUND')
+      return {'status': false, 'message': 'This Email does not exists!'};
+    else if (json.decode(response.body)['error']['message'] ==
+        'INVALID_PASSWORD')
+      return {'status': false, 'message': 'Invalid Password!'};
+    else
+      return {'status': false, 'message': 'Something went wrong!'};
   }
 }
 

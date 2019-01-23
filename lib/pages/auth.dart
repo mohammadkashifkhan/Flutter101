@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 
+import '../models/authmode.dart';
 import '../scoped-models/main_helper.dart';
-
-enum AuthMode { SignUp, Login }
 
 class AuthPage extends StatefulWidget {
   @override
@@ -90,28 +89,20 @@ class _AuthPageState extends State<AuthPage> {
     );
   }
 
-  void _submitForm(Function login, Function signUp) {
+  void _submitForm(Function authenticate) {
     if (!_formKey.currentState.validate() || !_formData['acceptTerms']) {
       return;
     }
     _formKey.currentState.save();
 
-    if (_authMode == AuthMode.Login)
-      login(_formData['email'], _formData['password'])
-          .then((Map<String, dynamic> responseData) {
-        authResponseData = responseData;
-        _showDialogAccordingly(authResponseData);
-      });
-    else
-      signUp(_formData['email'], _formData['password'])
-          .then((Map<String, dynamic> responseData) {
-        authResponseData = responseData;
-        _showDialogAccordingly(authResponseData);
-      });
+    authenticate(_formData['email'], _formData['password'], _authMode)
+        .then((Map<String, dynamic> responseData) {
+      authResponseData = responseData;
+      _showDialogAccordingly(authResponseData);
+    });
   }
 
   void _showDialogAccordingly(Map<String, dynamic> authResponseData) {
-    print(authResponseData['status']);
     if (authResponseData['status']) {
       Navigator.pushReplacementNamed(context, '/products');
     } else
@@ -194,7 +185,7 @@ class _AuthPageState extends State<AuthPage> {
                                     ? Text('LOGIN')
                                     : Text('SIGN UP'),
                                 onPressed: () =>
-                                    _submitForm(model.login, model.signUp),
+                                    _submitForm(model.authenticate),
                               );
                       },
                     ),
