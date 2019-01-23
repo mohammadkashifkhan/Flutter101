@@ -41,14 +41,14 @@ mixin ProductsHelper on ConnectedProductsHelper {
       'title': title,
       'description': description,
       'image':
-      'https://www.telegraph.co.uk/content/dam/food-and-drink/2017/07/06/TELEMMGLPICT000133992337_trans_NvBQzQNjv4BqpVlberWd9EgFPZtcLiMQfyf2A9a6I9YchsjMeADBa08.jpeg?imwidth=450',
+          'https://www.telegraph.co.uk/content/dam/food-and-drink/2017/07/06/TELEMMGLPICT000133992337_trans_NvBQzQNjv4BqpVlberWd9EgFPZtcLiMQfyf2A9a6I9YchsjMeADBa08.jpeg?imwidth=450',
       'price': price,
       'userEmail': _authenticatedUser.email,
       'userId': _authenticatedUser.id
     };
     return httpClient
         .post('https://flutter101-11945.firebaseio.com/products.json',
-        body: json.encode(productData))
+            body: json.encode(productData))
         .then((httpClient.Response response) {
       if (!(response.statusCode == 200 && response.statusCode == 201)) {
         _isLoading = false;
@@ -68,7 +68,8 @@ mixin ProductsHelper on ConnectedProductsHelper {
       _isLoading = false;
       notifyListeners();
       return true;
-    }).catchError((error){ // generic error handling
+    }).catchError((error) {
+      // generic error handling
       _isLoading = false;
       notifyListeners();
       return false;
@@ -102,7 +103,8 @@ mixin ProductsHelper on ConnectedProductsHelper {
       _products = fetchedProductList;
       notifyListeners();
       _selProductId = null;
-    }).catchError((error){ // generic error handling
+    }).catchError((error) {
+      // generic error handling
       _isLoading = false;
       notifyListeners();
       return;
@@ -158,7 +160,8 @@ mixin ProductsHelper on ConnectedProductsHelper {
       _isLoading = false;
       notifyListeners();
       return true;
-    }).catchError((error){ // generic error handling
+    }).catchError((error) {
+      // generic error handling
       _isLoading = false;
       notifyListeners();
       return false;
@@ -178,7 +181,8 @@ mixin ProductsHelper on ConnectedProductsHelper {
       _isLoading = false;
       notifyListeners();
       return true;
-    }).catchError((error){ // generic error handling
+    }).catchError((error) {
+      // generic error handling
       _isLoading = false;
       notifyListeners();
       return false;
@@ -213,9 +217,62 @@ mixin ProductsHelper on ConnectedProductsHelper {
 }
 
 mixin UserHelper on ConnectedProductsHelper {
-  void login(String email, String password) {
-    _authenticatedUser =
-        User(id: 'fdalsdfasf', email: email, password: password);
+
+  Future<Map<String, dynamic>> login(String email, String password) {
+    _isLoading = true;
+    notifyListeners();
+    final Map<String, dynamic> authData = {
+      'email': email,
+      'password': password,
+      'returnSecureToken': true
+    };
+    return httpClient.post(
+        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyC1ZjFvsdzibm7zaoKn0MU-H1HQSLPRq3o',
+        body: json.encode(authData),
+        headers: {
+          'Content-Type': 'application/json'
+        }).then((httpClient.Response response) {
+      print(json.decode(response.body));
+      _isLoading = false;
+      notifyListeners();
+      if (response.statusCode == 200)
+        return {'status': true, 'message': 'Authentication Succeeded!'};
+      else if (json.decode(response.body)['error']['message'] ==
+          'EMAIL_NOT_FOUND')
+        return {'status': false, 'message': 'This Email does not exists!'};
+      else if (json.decode(response.body)['error']['message'] ==
+          'INVALID_PASSWORD')
+        return {'status': false, 'message': 'Invalid Password!'};
+      else
+        return {'status': false, 'message': 'Something went wrong!'};
+    });
+    //    _authenticatedUser =
+//        User(id: 'fdalsdfasf', email: email, password: password);
+  }
+
+  Future<Map<String, dynamic>> signUp(String email, String password) {
+    _isLoading = true;
+    notifyListeners();
+    final Map<String, dynamic> authData = {
+      'email': email,
+      'password': password,
+      'returnSecureToken': true
+    };
+    return httpClient.post(
+        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyC1ZjFvsdzibm7zaoKn0MU-H1HQSLPRq3o',
+        body: json.encode(authData),
+        headers: {
+          'Content-Type': 'application/json'
+        }).then((httpClient.Response response) {
+      _isLoading = false;
+      notifyListeners();
+      if (response.statusCode == 200)
+        return {'status': true, 'message': 'SignUp Succeeded!'};
+      else if (json.decode(response.body)['error']['message'] == 'EMAIL_EXISTS')
+        return {'status': false, 'message': 'The Email already exists!'};
+      else
+        return {'status': false, 'message': 'Something went wrong!'};
+    });
   }
 }
 
