@@ -3,6 +3,7 @@ import 'package:scoped_model/scoped_model.dart';
 
 import '../scoped-models/main_helper.dart';
 import '../widgets/products/products.dart';
+import '../widgets/ui_elements/logout_list_tile.dart';
 
 class HomePage extends StatefulWidget {
   final MainModel model;
@@ -36,7 +37,8 @@ class _HomePageState extends State<HomePage> {
             onTap: () {
               Navigator.pushReplacementNamed(context, '/admin');
             },
-          )
+          ),
+          LogoutListTile(),
         ],
       ),
     );

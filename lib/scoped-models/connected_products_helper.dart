@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as httpClient;
+import 'package:rxdart/subjects.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/authmode.dart';
 import '../models/product.dart';
@@ -14,6 +16,11 @@ mixin ConnectedProductsHelper on Model {
       _selProductId; // although these properties are private, they are accessible in the same file by other classes
   User _authenticatedUser;
   bool _isLoading = false;
+
+  Future<SharedPreferences> getSharedPreference() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs;
+  }
 }
 
 mixin ProductsHelper on ConnectedProductsHelper {
@@ -48,7 +55,8 @@ mixin ProductsHelper on ConnectedProductsHelper {
       'userId': _authenticatedUser.id
     };
     return httpClient
-        .post('https://flutter101-11945.firebaseio.com/products.json?auth=${_authenticatedUser.token}',
+        .post(
+            'https://flutter101-11945.firebaseio.com/products.json?auth=${_authenticatedUser.token}',
             body: json.encode(productData))
         .then((httpClient.Response response) {
       if (!(response.statusCode == 200 && response.statusCode == 201)) {
@@ -219,6 +227,18 @@ mixin ProductsHelper on ConnectedProductsHelper {
 }
 
 mixin UserHelper on ConnectedProductsHelper {
+  Timer _authTimer;
+  PublishSubject<bool> _userSubject =
+      PublishSubject(); // used rxdart subject here for emitting out that we are not authenticated anymore
+
+  PublishSubject<bool> get userSubject {
+    return _userSubject;
+  }
+
+  User get user {
+    return _authenticatedUser;
+  }
+
   Future<Map<String, dynamic>> authenticate(String email, String password,
       [AuthMode mode = AuthMode.Login]) {
     _isLoading = true;
@@ -254,19 +274,26 @@ mixin UserHelper on ConnectedProductsHelper {
     _isLoading = false;
     notifyListeners();
 
-    if (response.statusCode == 200 && mode == AuthMode.Login) {
+    if (response.statusCode == 200) {
       _authenticatedUser = User(
           id: json.decode(response.body)['localId'],
           email: json.decode(response.body)['email'],
           token: json.decode(response.body)['idToken']);
+
+      ////////// timeout stuff
+      DateTime now = DateTime.now();
+      DateTime expiryTime = now.add(Duration(
+          seconds: int.parse(json.decode(response.body)['expiresIn'])));
+      setAuthTimeOut(int.parse(json.decode(response.body)['expiresIn']));
+      _userSubject.add(true);
+      //////////
+      getSharedPreference().then((SharedPreferences pref) {
+        pref.setString('userId', json.decode(response.body)['localId']);
+        pref.setString('userEmail', json.decode(response.body)['email']);
+        pref.setString('userToken', json.decode(response.body)['idToken']);
+        pref.setString('tokenExpiryTime', expiryTime.toIso8601String());
+      });
       return {'status': true, 'message': 'Authentication Succeeded!'};
-    }
-    if (response.statusCode == 200 && mode == AuthMode.SignUp) {
-      _authenticatedUser = User(
-          id: json.decode(response.body)['localId'],
-          email: json.decode(response.body)['email'],
-          token: json.decode(response.body)['idToken']);
-      return {'status': true, 'message': 'SignUp Succeeded!'};
     } else if (json.decode(response.body)['error']['message'] == 'EMAIL_EXISTS')
       return {'status': false, 'message': 'The Email already exists!'};
     else if (json.decode(response.body)['error']['message'] ==
@@ -277,6 +304,42 @@ mixin UserHelper on ConnectedProductsHelper {
       return {'status': false, 'message': 'Invalid Password!'};
     else
       return {'status': false, 'message': 'Something went wrong!'};
+  }
+
+  void autoAuthenticate() {
+    getSharedPreference().then((SharedPreferences pref) {
+      if (pref.getString('userToken') != null) {
+        var expiryTimeString = pref.getString('tokenExpiryTime');
+        if (DateTime.parse(expiryTimeString).isBefore(DateTime.now())) {
+          _authenticatedUser = null;
+          return; // token time out else continue
+        }
+        _authenticatedUser = User(
+            id: pref.getString('userId'),
+            email: pref.getString('userEmail'),
+            token: pref.getString('userToken'));
+        _userSubject.add(true);
+        setAuthTimeOut(DateTime.parse(expiryTimeString)
+            .difference(DateTime.now())
+            .inSeconds); // if token has'nt expired, set remaining time
+        notifyListeners();
+      }
+    });
+  }
+
+  void logout() {
+    _authTimer.cancel(); // in case of logout, timer is reset
+    _authenticatedUser = null;
+    getSharedPreference().then((SharedPreferences pref) {
+      pref.clear();
+    });
+  }
+
+  void setAuthTimeOut(int time) {
+    _authTimer = Timer(Duration(seconds: time), () {
+      logout();
+      _userSubject.add(false); // we are not authenticated anymore
+    });
   }
 }
 

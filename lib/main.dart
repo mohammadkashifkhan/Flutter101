@@ -9,7 +9,6 @@ import './pages/products_admin.dart';
 import './scoped-models/main_helper.dart';
 // import 'package:flutter/rendering.dart';
 
-
 void main() {
   // debugPaintSizeEnabled = true;
   // debugPaintBaselinesEnabled = true;
@@ -25,11 +24,24 @@ class Flutter101 extends StatefulWidget {
 }
 
 class _Flutter101State extends State<Flutter101> {
+  MainModel _model = MainModel();
+  bool _isAuthenticated = false;
+
+  @override
+  void initState() {
+    _model.autoAuthenticate();
+    _model.userSubject.listen((bool isAuthenticated){ // will not execute immediately rather it will listen to the emitted subject
+      setState(() {
+        _isAuthenticated = isAuthenticated;
+      });
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    MainModel model= MainModel();
     return ScopedModel<MainModel>(
-      model: model,
+      model: _model,
       child: MaterialApp(
         // debugShowMaterialGrid: true,
         theme: ThemeData(
@@ -40,31 +52,38 @@ class _Flutter101State extends State<Flutter101> {
             buttonColor: Colors.blue),
         // home: AuthPage(),
         routes: {
-          '/': (BuildContext context) => AuthPage(),
-          '/products': (BuildContext context) => HomePage(model),
-          '/admin': (BuildContext context) => ProductsAdminPage(model),
+          '/': (BuildContext context) =>
+              !_isAuthenticated ? AuthPage() : HomePage(_model),
+          '/admin': (BuildContext context) => !_isAuthenticated ? AuthPage() : ProductsAdminPage(_model),
         },
         onGenerateRoute: (RouteSettings settings) {
+          /////// only catches new navigation actions
+          if(!_isAuthenticated){
+            return MaterialPageRoute<bool>(
+              builder: (BuildContext context) => AuthPage(),
+            );
+          }
+          ///////
           final List<String> pathElements = settings.name.split('/');
           if (pathElements[0] != '') {
             return null;
           }
           if (pathElements[1] == 'product') {
             final String productId = pathElements[2];
-            final Product product = model.allProducts.firstWhere((Product product){
+            final Product product =
+                _model.allProducts.firstWhere((Product product) {
               return product.id == productId;
             });
 
             return MaterialPageRoute<bool>(
-              builder: (BuildContext context) =>
-                  ProductDetailsPage(product),
+              builder: (BuildContext context) => !_isAuthenticated ? AuthPage() : ProductDetailsPage(product),
             );
           }
           return null;
         },
         onUnknownRoute: (RouteSettings settings) {
           return MaterialPageRoute(
-              builder: (BuildContext context) => HomePage(model));
+              builder: (BuildContext context) => !_isAuthenticated ? AuthPage() : HomePage(_model));
         },
       ),
     );

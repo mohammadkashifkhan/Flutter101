@@ -104,7 +104,7 @@ class _AuthPageState extends State<AuthPage> {
 
   void _showDialogAccordingly(Map<String, dynamic> authResponseData) {
     if (authResponseData['status']) {
-      Navigator.pushReplacementNamed(context, '/products');
+//      Navigator.pushReplacementNamed(context, '/');
     } else
       showDialog(
           context: context,
