@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:map_view/map_view.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import './models/product.dart';
@@ -7,12 +8,14 @@ import './pages/home.dart';
 import './pages/product_details.dart';
 import './pages/products_admin.dart';
 import './scoped-models/main_helper.dart';
+
 // import 'package:flutter/rendering.dart';
 
 void main() {
   // debugPaintSizeEnabled = true;
   // debugPaintBaselinesEnabled = true;
   // debugPaintPointersEnabled = true;
+  MapView.setApiKey('AIzaSyDQRXxzkCH0rCBQIBJC1iJgolmkZX_4_YQ');
   runApp(Flutter101());
 }
 

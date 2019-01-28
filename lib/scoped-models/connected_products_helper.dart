@@ -282,7 +282,7 @@ mixin UserHelper on ConnectedProductsHelper {
       );
     } else {
       response = await httpClient.post(
-        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyC1ZjFvsdzibm7zaoKn0MU-H1HQSLPRq3o',
+        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyC1ZjFvsdzibm7zaoKn0MU-H1HQSLPRq3op',
         body: json.encode(authData),
         headers: {'Content-Type': 'application/json'},
       );
